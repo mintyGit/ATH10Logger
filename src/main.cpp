@@ -6,10 +6,14 @@
 #include <Wire.h>
 #include <AHTxx.h>
 #include <ESP8266WiFi.h>
+#include <LedControl.h>
 
 AHTxx aht10(AHTXX_ADDRESS_X38, AHT1x_SENSOR); // Allows communication with ATH10 temperature sensor
+LedControl lc=LedControl(12,14,16,1); //pin 12 is connected to the DataIn, pin 14 is connected to the CLK, pin 16 is connected to LOAD
+unsigned long delaytime=500; 
 
-void printStatus(); // declare function before usage (foward declaration, more elegant to declare in header)
+void printStatus(); 
+void scrollDigits(); 
 
 
 void setup()
@@ -25,6 +29,13 @@ void setup()
     Serial.println("Failed to connect to AHT10, RETRYING");
     delay(5000);
   }
+  
+  //The MAX72XX is in power-saving mode on startup
+  lc.shutdown(0,false);
+  /* Set the brightness to a medium values */
+  lc.setIntensity(0,1);
+  /* and clear the display */
+  lc.clearDisplay(0);
 }
 
 void loop()
@@ -40,7 +51,7 @@ void loop()
   else
   {  
     Serial.print(temperature);
-    Serial.println(" Celcius");
+    Serial.println(" C");
   }
 
   Serial.println();
@@ -54,11 +65,11 @@ void loop()
   else
   {  
     Serial.print(humidity);
-    Serial.println(" %");
+    Serial.println(" H");
   }
 
-  delay(10000); // delaying to prevent overheating
-
+  scrollDigits();
+  delay(7000); // delaying to prevent overheating
 }
 
 void printStatus()
@@ -90,3 +101,16 @@ void printStatus()
       break;
   }
 }
+
+void scrollDigits() {
+  for(int i=0;i<13;i++) {
+    lc.setDigit(0,6,i,false);
+    lc.setDigit(0,2,i+1,false);
+    lc.setDigit(0,1,i+2,false);
+    lc.setDigit(0,0,i+3,false);
+    delay(delaytime);
+  }
+  lc.clearDisplay(0);
+  delay(delaytime);
+}
+
