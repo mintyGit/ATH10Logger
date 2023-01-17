@@ -7,13 +7,14 @@
 #include <AHTxx.h>
 #include <ESP8266WiFi.h>
 #include <LedControl.h>
+#include <math.h>
 
 AHTxx aht10(AHTXX_ADDRESS_X38, AHT1x_SENSOR); // Allows communication with ATH10 temperature sensor
 LedControl lc=LedControl(12,14,16,1); //pin 12 is connected to the DataIn, pin 14 is connected to the CLK, pin 16 is connected to LOAD
 unsigned long delaytime=500; 
 
 void printStatus(); 
-void scrollDigits(); 
+//void scrollDigits(); 
 
 
 void setup()
@@ -67,8 +68,25 @@ void loop()
     Serial.print(humidity);
     Serial.println(" H");
   }
+  
+  temperature = roundf(temperature * 10) / 10; // e.g 21.444 -> 21.4
 
-  scrollDigits();
+  char temperature_array[4];
+  sprintf(temperature_array,"%4.1f",temperature);
+  Serial.println(temperature_array);
+
+
+  // temperature
+  lc.setChar(0, 7, temperature_array[0], false);
+  lc.setChar(0, 6, temperature_array[1], true);
+  lc.setChar(0, 5, temperature_array[3], false);
+  lc.setChar(0, 4, 'C', false);
+
+  // humidity
+  // lc.setChar(0, 3, i, false);
+  // lc.setChar(0, 2, i+1, true);
+  // lc.setChar(0, 1, i+2, false);
+  // lc.setChar(0, 0, i+3, false);
   delay(7000); // delaying to prevent overheating
 }
 
@@ -102,15 +120,15 @@ void printStatus()
   }
 }
 
-void scrollDigits() {
-  for(int i=0;i<13;i++) {
-    lc.setDigit(0,6,i,false);
-    lc.setDigit(0,2,i+1,false);
-    lc.setDigit(0,1,i+2,false);
-    lc.setDigit(0,0,i+3,false);
-    delay(delaytime);
-  }
-  lc.clearDisplay(0);
-  delay(delaytime);
-}
+// void scrollDigits() {
+//   for(int i=0;i<13;i++) {
+//     lc.setDigit(0,6,i,false);
+//     lc.setDigit(0,2,i+1,false);
+//     lc.setDigit(0,1,i+2,false);
+//     lc.setDigit(0,0,i+3,false);
+//     delay(delaytime);
+//   }
+//   lc.clearDisplay(0);
+//   delay(delaytime);
+// }
 
