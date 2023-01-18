@@ -11,7 +11,7 @@
 
 AHTxx aht10(AHTXX_ADDRESS_X38, AHT1x_SENSOR); // Allows communication with ATH10 temperature sensor
 LedControl lc=LedControl(12,14,16,1); //pin 12 is connected to the DataIn, pin 14 is connected to the CLK, pin 16 is connected to LOAD
-unsigned long delaytime=500; 
+//unsigned long delaytime=500; 
 
 void printStatus(); 
 
@@ -70,13 +70,13 @@ void loop()
   temperature = roundf(temperature * 10) / 10; // e.g 21.444 -> 21.4
 
   char temperature_array[5]; // array size +1 what is actually needed for null termination
-  Serial.println(sprintf(temperature_array,"%4.1f",temperature));
+  sprintf(temperature_array,"%4.1f",temperature);
   Serial.println(temperature_array);
 
   humidity = roundf(humidity * 10) / 10; // e.g 21.444 -> 21.4
 
   char humidity_array[5]; // array size +1 what is actually needed for null termination
-  Serial.println(sprintf(humidity_array,"%4.1f",humidity));
+  sprintf(humidity_array,"%4.1f",humidity);
   Serial.println(humidity_array);
 
   // temperature
@@ -86,14 +86,13 @@ void loop()
   //lc.setChar(0, 4, 'C', false); // char 'C' is ugly, make your own.
   lc.setRow(0, 4, B01001110); // custom made capital 'C'
 
-
   // humidity
   lc.setChar(0, 3, humidity_array[0], false);
   lc.setChar(0, 2, humidity_array[1], true);
   lc.setChar(0, 1, humidity_array[3], false);
   lc.setChar(0, 0, 'H', false);
 
-  delay(7000); // delaying to prevent overheating
+  delay(30000); // delaying to prevent overheating
 }
 
 void printStatus()
