@@ -6,11 +6,14 @@
 #include <Wire.h>
 #include <AHTxx.h>
 #include <ESP8266WiFi.h>
+#include <LedControl.h>
+#include <math.h>
 
 AHTxx aht10(AHTXX_ADDRESS_X38, AHT1x_SENSOR); // Allows communication with ATH10 temperature sensor
+LedControl lc=LedControl(12,14,16,1); //pin 12 is connected to the DataIn, pin 14 is connected to the CLK, pin 16 is connected to LOAD
+//unsigned long delaytime=500; 
 
-void printStatus(); // declare function before usage (foward declaration, more elegant to declare in header)
-
+void printStatus(); 
 
 void setup()
 {
@@ -25,6 +28,13 @@ void setup()
     Serial.println("Failed to connect to AHT10, RETRYING");
     delay(5000);
   }
+  
+  //The MAX72XX is in power-saving mode on startup
+  lc.shutdown(0,false);
+  /* Set the brightness to a medium values */
+  lc.setIntensity(0,1);
+  /* and clear the display */
+  lc.clearDisplay(0);
 }
 
 void loop()
@@ -40,7 +50,7 @@ void loop()
   else
   {  
     Serial.print(temperature);
-    Serial.println(" Celcius");
+    Serial.println(" C");
   }
 
   Serial.println();
@@ -54,11 +64,35 @@ void loop()
   else
   {  
     Serial.print(humidity);
-    Serial.println(" %");
+    Serial.println(" H");
   }
+  
+  temperature = roundf(temperature * 10) / 10; // e.g 21.444 -> 21.4
 
-  delay(10000); // delaying to prevent overheating
+  char temperature_array[5]; // array size +1 what is actually needed for null termination
+  sprintf(temperature_array,"%4.1f",temperature);
+  Serial.println(temperature_array);
 
+  humidity = roundf(humidity * 10) / 10; // e.g 21.444 -> 21.4
+
+  char humidity_array[5]; // array size +1 what is actually needed for null termination
+  sprintf(humidity_array,"%4.1f",humidity);
+  Serial.println(humidity_array);
+
+  // temperature
+  lc.setChar(0, 7, temperature_array[0], false);
+  lc.setChar(0, 6, temperature_array[1], true);
+  lc.setChar(0, 5, temperature_array[3], false);
+  //lc.setChar(0, 4, 'C', false); // char 'C' is ugly, make your own.
+  lc.setRow(0, 4, B01001110); // custom made capital 'C'
+
+  // humidity
+  lc.setChar(0, 3, humidity_array[0], false);
+  lc.setChar(0, 2, humidity_array[1], true);
+  lc.setChar(0, 1, humidity_array[3], false);
+  lc.setChar(0, 0, 'H', false);
+
+  delay(30000); // delaying to prevent overheating
 }
 
 void printStatus()
