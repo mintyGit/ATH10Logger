@@ -14,8 +14,6 @@ LedControl lc=LedControl(12,14,16,1); //pin 12 is connected to the DataIn, pin 1
 unsigned long delaytime=500; 
 
 void printStatus(); 
-//void scrollDigits(); 
-
 
 void setup()
 {
@@ -71,22 +69,30 @@ void loop()
   
   temperature = roundf(temperature * 10) / 10; // e.g 21.444 -> 21.4
 
-  char temperature_array[4];
-  sprintf(temperature_array,"%4.1f",temperature);
+  char temperature_array[5]; // array size +1 what is actually needed for null termination
+  Serial.println(sprintf(temperature_array,"%4.1f",temperature));
   Serial.println(temperature_array);
 
+  humidity = roundf(humidity * 10) / 10; // e.g 21.444 -> 21.4
+
+  char humidity_array[5]; // array size +1 what is actually needed for null termination
+  Serial.println(sprintf(humidity_array,"%4.1f",humidity));
+  Serial.println(humidity_array);
 
   // temperature
   lc.setChar(0, 7, temperature_array[0], false);
   lc.setChar(0, 6, temperature_array[1], true);
   lc.setChar(0, 5, temperature_array[3], false);
-  lc.setChar(0, 4, 'C', false);
+  //lc.setChar(0, 4, 'C', false); // char 'C' is ugly, make your own.
+  lc.setRow(0, 4, B01001110); // custom made capital 'C'
+
 
   // humidity
-  // lc.setChar(0, 3, i, false);
-  // lc.setChar(0, 2, i+1, true);
-  // lc.setChar(0, 1, i+2, false);
-  // lc.setChar(0, 0, i+3, false);
+  lc.setChar(0, 3, humidity_array[0], false);
+  lc.setChar(0, 2, humidity_array[1], true);
+  lc.setChar(0, 1, humidity_array[3], false);
+  lc.setChar(0, 0, 'H', false);
+
   delay(7000); // delaying to prevent overheating
 }
 
@@ -119,16 +125,3 @@ void printStatus()
       break;
   }
 }
-
-// void scrollDigits() {
-//   for(int i=0;i<13;i++) {
-//     lc.setDigit(0,6,i,false);
-//     lc.setDigit(0,2,i+1,false);
-//     lc.setDigit(0,1,i+2,false);
-//     lc.setDigit(0,0,i+3,false);
-//     delay(delaytime);
-//   }
-//   lc.clearDisplay(0);
-//   delay(delaytime);
-// }
-
