@@ -8,19 +8,28 @@
 #include <ESP8266WiFi.h>
 #include <LedControl.h>
 #include <math.h>
+#include <credentials.h>
 
 AHTxx aht10(AHTXX_ADDRESS_X38, AHT1x_SENSOR); // Allows communication with ATH10 temperature sensor
 LedControl lc=LedControl(12,14,16,1); //pin 12 is connected to the DataIn, pin 14 is connected to the CLK, pin 16 is connected to LOAD
 //unsigned long delaytime=500; 
 
-void printStatus(); 
+void printStatus();
 
 void setup()
 {
-  WiFi.persistent(false);  //disable saving wifi config into SDK flash area
-  WiFi.forceSleepBegin();  //disable AP & station by calling "WiFi.mode(WIFI_OFF)" & put modem to sleep
+  //WiFi.persistent(false);  //disable saving wifi config into SDK flash area
+  //WiFi.forceSleepBegin();  //disable AP & station by calling "WiFi.mode(WIFI_OFF)" & put modem to sleep
 
   Serial.begin(115200);
+  WiFi.begin(SSID, PASSWORD);
+
+  while (WiFi.status() != WL_CONNECTED) 
+  {
+    delay(500);
+    Serial.println("Trying to connect");
+  }
+
   Serial.println();
 
   while (aht10.begin(0, 2) != true) //calling begin setting SDA to GPIO0, and SCL to GPIO2
