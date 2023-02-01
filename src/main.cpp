@@ -9,12 +9,16 @@
 #include <LedControl.h>
 #include <math.h>
 #include <credentials.h>
+#include <ReconnectingMqttClient.h>
+
 
 AHTxx aht10(AHTXX_ADDRESS_X38, AHT1x_SENSOR); // Allows communication with ATH10 temperature sensor
 LedControl lc=LedControl(12,14,16,1); //pin 12 is connected to the DataIn, pin 14 is connected to the CLK, pin 16 is connected to LOAD
-//unsigned long delaytime=500; 
+uint8_t ip[] = { 192, 168, 247, 120 }; // Broker address
+ReconnectingMqttClient client(ip, 1883, "Sensor01");
 
 void printStatus();
+void receive_callback(const char *topic, const uint8_t *payload, uint16_t len, void *);
 
 void setup()
 {
@@ -29,6 +33,10 @@ void setup()
     delay(500);
     Serial.println("Trying to connect");
   }
+
+  Serial.printf("Now listening at IP %s\n", WiFi.localIP().toString().c_str());
+  client.set_receive_callback(receive_callback, NULL);
+  client.subscribe("testing", 1);
 
   Serial.println();
 
@@ -49,6 +57,9 @@ void setup()
 void loop()
 {
   Serial.println();
+  
+  client.update();
+
   float temperature = aht10.readTemperature();
 
   if (temperature == AHTXX_ERROR) //checking if ath10 returns an error
@@ -88,6 +99,24 @@ void loop()
   sprintf(humidity_array,"%4.1f",humidity);
   Serial.println(humidity_array);
 
+  if (client.publish("sensor01/temperature", (uint8_t*) temperature_array, 5, true, 1))
+  {
+    Serial.println("Temperature Uploaded");
+  }
+  else 
+  {
+    Serial.println("Temperature Upload Failed");
+  }
+
+if (client.publish("sensor01/humidity", (uint8_t*) humidity_array, 5, true, 1))
+  {
+    Serial.println("Humidity Uploaded");
+  }
+  else 
+  {
+    Serial.println("Humidity Upload Failed");
+  }
+  
   // temperature
   lc.setChar(0, 7, temperature_array[0], false);
   lc.setChar(0, 6, temperature_array[1], true);
@@ -101,7 +130,7 @@ void loop()
   lc.setChar(0, 1, humidity_array[3], false);
   lc.setChar(0, 0, 'H', false);
 
-  delay(30000); // delaying to prevent overheating
+  delay(10000); // delaying to prevent overheating
 }
 
 void printStatus()
@@ -132,4 +161,11 @@ void printStatus()
       Serial.println(F("unknown status"));    
       break;
   }
+}
+
+void receive_callback(const char *topic, const uint8_t *payload, uint16_t len, void *) 
+{
+  Serial.print("Received topic: "); Serial.print(topic); 
+  Serial.print(", message: "); Serial.write(payload, len); 
+  Serial.println();
 }
