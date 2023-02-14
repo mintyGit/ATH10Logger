@@ -11,10 +11,9 @@
 #include <credentials.h>
 #include <ReconnectingMqttClient.h>
 
-
 AHTxx aht10(AHTXX_ADDRESS_X38, AHT1x_SENSOR); // Allows communication with ATH10 temperature sensor
-LedControl lc=LedControl(12,14,16,1); //pin 12 is connected to the DataIn, pin 14 is connected to the CLK, pin 16 is connected to LOAD
-uint8_t ip[] = { 192, 168, 247, 120 }; // Broker address
+LedControl lc(12,14,16,1); //pin 12 is connected to the DataIn, pin 14 is connected to the CLK, pin 16 is connected to LOAD
+uint8_t ip[] = { 192, 168, 4, 1 }; // Broker address
 ReconnectingMqttClient client(ip, 1883, "Sensor01");
 
 void printStatus();
@@ -22,9 +21,6 @@ void receive_callback(const char *topic, const uint8_t *payload, uint16_t len, v
 
 void setup()
 {
-  //WiFi.persistent(false);  //disable saving wifi config into SDK flash area
-  //WiFi.forceSleepBegin();  //disable AP & station by calling "WiFi.mode(WIFI_OFF)" & put modem to sleep
-
   Serial.begin(115200);
   WiFi.begin(SSID, PASSWORD);
 
@@ -36,7 +32,7 @@ void setup()
 
   Serial.printf("Now listening at IP %s\n", WiFi.localIP().toString().c_str());
   client.set_receive_callback(receive_callback, NULL);
-  client.subscribe("testing", 1);
+  client.subscribe("broker/counter", 1);
 
   Serial.println();
 
@@ -90,7 +86,7 @@ void loop()
   temperature = roundf(temperature * 10) / 10; // e.g 21.444 -> 21.4
 
   char temperature_array[5]; // array size +1 what is actually needed for null termination
-  sprintf(temperature_array,"%4.1f",temperature);
+  sprintf(temperature_array,"%4.1f",temperature); // %4.1f format string. 
   Serial.println(temperature_array);
 
   humidity = roundf(humidity * 10) / 10; // e.g 21.444 -> 21.4
